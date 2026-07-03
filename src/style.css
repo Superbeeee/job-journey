@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Noto Sans TC", system-ui, sans-serif;
+  --font-num: "Nunito", "Noto Sans TC", sans-serif;
+
+  /* 主色：暖橘 */
+  --color-primary: #f0641e;
+  --color-primary-dark: #d95513;
+  --color-primary-deep: #c75c14;
+  --color-primary-soft: #fdeadb;
+
+  /* 底色與文字 */
+  --color-cream: #fdf9f3;
+  --color-ink: #3d3428;
+
+  /* 沙色階（卡片、邊框、輔助文字） */
+  --color-sand-50: #faf5ec;
+  --color-sand-100: #f5eee1;
+  --color-sand-150: #f0e6d6;
+  --color-sand-200: #ecdfcd;
+  --color-sand-300: #e5d6bf;
+  --color-sand-400: #d8c7ab;
+  --color-sand-450: #c9b89d;
+  --color-sand-500: #b09a7d;
+  --color-sand-600: #a08b6e;
+  --color-sand-700: #7a6a52;
+
+  /* 綠色（完成、Offer） */
+  --color-leaf: #4a9d6b;
+  --color-leaf-deep: #3d7a52;
+  --color-leaf-soft: #eef7f0;
+  --color-leaf-border: #cfe5d6;
+
+  /* 灰調（已結束） */
+  --color-stone-soft: #f3f0eb;
+  --color-stone-fg: #a09582;
+}
+
+body {
+  margin: 0;
+  background: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid #f0a06e;
+  outline-offset: 1px;
+}
