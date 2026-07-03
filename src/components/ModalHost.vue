@@ -13,7 +13,23 @@ import {
   saveAnswer,
   importData,
   showToast,
+  platform,
 } from '../store'
+
+const backupSteps = {
+  ios: [
+    '在分享面板選「儲存到檔案」，放進 iCloud Drive 資料夾（換手機也拿得回來）',
+    '或選 LINE，傳到「自己」的聊天室',
+  ],
+  android: [
+    '在分享面板選「雲端硬碟」，存進你的 Google Drive',
+    '或選 LINE，傳到「自己」的聊天室',
+  ],
+  desktop: [
+    '把下載的 JSON 檔搬進有雲端同步的資料夾（iCloud Drive／Google Drive／Dropbox）',
+    '或用通訊軟體傳給自己，留一份在雲端',
+  ],
+}
 
 const f = reactive({
   company: '', role: '', source: '',
@@ -285,6 +301,33 @@ const ivSubtitle = computed(() => {
             取消
           </button>
         </div>
+      </template>
+
+      <!-- 首次備份完成說明 -->
+      <template v-else-if="ui.modal === 'backupTip'">
+        <div class="text-lg font-black mb-1">🎉 完成第一次備份！</div>
+        <div class="text-[12.5px] text-sand-500 mb-4 leading-[1.7]">
+          備份檔在手，資料不怕丟。最後一步：把它放到安全的地方——
+        </div>
+        <div class="flex flex-col gap-2 mb-4">
+          <div
+            v-for="(step, i) in backupSteps[platform]"
+            :key="i"
+            class="flex items-start gap-2.5 px-3.5 py-3 bg-sand-50 rounded-[12px] text-[13px] leading-[1.6]"
+          >
+            <span class="font-num font-black text-primary">{{ i + 1 }}</span>
+            <span>{{ step }}</span>
+          </div>
+        </div>
+        <div class="text-[11.5px] text-sand-450 leading-[1.7] mb-4">
+          之後每隔一陣子記得再匯出一次，「今日」頁也會提醒你 🧡
+        </div>
+        <button
+          @click="closeModal"
+          class="cursor-pointer w-full py-[11px] bg-primary hover:bg-primary-dark text-white border-none rounded-xl text-sm font-extrabold"
+        >
+          知道了
+        </button>
       </template>
 
       <!-- 確認對話框 -->

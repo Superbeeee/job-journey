@@ -11,6 +11,8 @@ import {
   decApply,
   exportIcs,
   icsEventFor,
+  exportJson,
+  backupMeta,
   showToast,
   openModal,
   REVIEW_REMIND_DAYS,
@@ -77,6 +79,19 @@ const pendingReviews = computed(() =>
     .filter(({ iv, diff }) => diff < 0 && diff >= -REVIEW_REMIND_DAYS && !iv.review)
     .sort((a, b) => (b.iv.date + b.iv.time).localeCompare(a.iv.date + a.iv.time))
 )
+// 備份提醒：從沒備份過且已有一定資料量，或距上次備份超過 7 天且期間有變動
+const BACKUP_REMIND_DAYS = 7
+const BACKUP_MIN_APPS = 5
+const backupReminder = computed(() => {
+  if (data.sample) return null
+  if (!backupMeta.lastBackupAt) {
+    return data.applications.length >= BACKUP_MIN_APPS ? { first: true } : null
+  }
+  const days = Math.floor((Date.now() - new Date(backupMeta.lastBackupAt)) / 86400000)
+  if (days >= BACKUP_REMIND_DAYS && backupMeta.changedSinceBackup > 0) return { first: false, days }
+  return null
+})
+
 // Offer 回覆期限倒數
 const offerDeadlines = computed(() =>
   data.applications
@@ -142,8 +157,8 @@ const quote = quotes[Math.floor(Date.now() / 86400000) % quotes.length]
       </button>
     </div>
 
-    <!-- 提醒區：待檢討 + Offer 期限 -->
-    <div v-if="pendingReviews.length || offerDeadlines.length" class="flex flex-col gap-2">
+    <!-- 提醒區：待檢討 + Offer 期限 + 備份 -->
+    <div v-if="pendingReviews.length || offerDeadlines.length || backupReminder" class="flex flex-col gap-2">
       <button
         v-for="{ app, iv } in pendingReviews"
         :key="iv.id"
@@ -175,6 +190,22 @@ const quote = quotes[Math.floor(Date.now() / 86400000) % quotes.length]
           查看 →
         </button>
       </div>
+      <button
+        v-if="backupReminder"
+        @click="exportJson"
+        class="cursor-pointer text-left flex items-center gap-3 bg-[#fff8e8] border-[1.5px] border-[#f2e2b8] rounded-[14px] px-4 py-3 text-[13px] text-[#8a6d2f]"
+      >
+        <span class="text-base">💾</span>
+        <span class="flex-1">
+          <template v-if="backupReminder.first">
+            紀錄越來越多了！資料只存在這台裝置的瀏覽器裡，花 10 秒匯出一份備份吧
+          </template>
+          <template v-else>
+            已經 <b>{{ backupReminder.days }} 天</b>沒備份了，這段時間的紀錄有變動，花 10 秒存一份吧
+          </template>
+        </span>
+        <span class="px-3 py-1 bg-white rounded-full text-[11.5px] font-bold whitespace-nowrap">立即備份 →</span>
+      </button>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-[minmax(280px,320px)_1fr] gap-4 items-stretch">

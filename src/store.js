@@ -290,6 +290,25 @@ function load() {
 
 export const data = reactive(load())
 
+// ---------- 備份狀態（獨立於資料本體，不隨匯入覆蓋） ----------
+const META_KEY = 'job-journey-backup-meta'
+function loadMeta() {
+  try {
+    const m = JSON.parse(localStorage.getItem(META_KEY))
+    if (m && typeof m === 'object') {
+      return { lastBackupAt: m.lastBackupAt || null, changedSinceBackup: m.changedSinceBackup || 0 }
+    }
+  } catch (e) {}
+  return { lastBackupAt: null, changedSinceBackup: 0 }
+}
+export const backupMeta = reactive(loadMeta())
+
+watch(backupMeta, (m) => {
+  try {
+    localStorage.setItem(META_KEY, JSON.stringify(m))
+  } catch (e) {}
+})
+
 watch(
   data,
   (d) => {
@@ -298,6 +317,7 @@ watch(
     } catch (e) {
       /* 空間滿了也不要讓 app 掛掉 */
     }
+    backupMeta.changedSinceBackup++
   },
   { deep: true }
 )
@@ -541,12 +561,45 @@ function download(blob, filename) {
   URL.revokeObjectURL(a.href)
 }
 
-export function exportJson() {
-  download(
-    new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }),
-    'job-journey-backup-' + todayKey.value + '.json'
-  )
-  showToast('已匯出備份 JSON ⬇')
+// ---------- 平台偵測與備份建議 ----------
+export const platform = /iPhone|iPad|iPod/i.test(navigator.userAgent)
+  ? 'ios'
+  : /Android/i.test(navigator.userAgent)
+    ? 'android'
+    : 'desktop'
+
+export function backupTip() {
+  if (platform === 'ios') return '建議存到「檔案」的 iCloud Drive，或用 LINE 傳給自己 📁'
+  if (platform === 'android') return '建議存到 Google Drive，或用 LINE 傳給自己 📁'
+  return '建議放進有雲端同步的資料夾（iCloud／Google Drive），多一層保障 📁'
+}
+
+function markBackedUp() {
+  const isFirst = !backupMeta.lastBackupAt
+  backupMeta.lastBackupAt = new Date().toISOString()
+  backupMeta.changedSinceBackup = 0
+  if (isFirst) openModal('backupTip')
+  else showToast('已匯出備份 ✓ ' + backupTip())
+}
+
+export async function exportJson() {
+  const filename = 'job-journey-backup-' + todayKey.value + '.json'
+  const json = JSON.stringify(data, null, 2)
+  const file = new File([json], filename, { type: 'application/json' })
+
+  // 手機優先用系統分享面板：可直接存到 iCloud Drive／Google Drive／LINE
+  if (platform !== 'desktop' && navigator.canShare?.({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title: '求職手帳備份' })
+      markBackedUp()
+      return
+    } catch (e) {
+      if (e.name === 'AbortError') return // 使用者取消分享，不算完成備份
+      /* 分享失敗改走下載 */
+    }
+  }
+  download(new Blob([json], { type: 'application/json' }), filename)
+  markBackedUp()
 }
 
 export function importData(incoming, mode) {

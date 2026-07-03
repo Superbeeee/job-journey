@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import {
   data,
   addCondition,
@@ -9,6 +9,8 @@ import {
   removeHabit,
   setKpiTarget,
   exportJson,
+  backupMeta,
+  backupTip,
   openModal,
 } from '../store'
 
@@ -24,6 +26,14 @@ function submitHabit() {
   if (!habitText.value.trim()) return
   if (addHabit(habitText.value.trim())) habitText.value = ''
 }
+
+const lastBackupLabel = computed(() => {
+  if (!backupMeta.lastBackupAt) return '還沒備份過'
+  const d = new Date(backupMeta.lastBackupAt)
+  const days = Math.floor((Date.now() - d) / 86400000)
+  const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  return `上次備份：${dateStr}` + (days === 0 ? '（今天）' : `（${days} 天前）`)
+})
 </script>
 
 <template>
@@ -125,8 +135,14 @@ function submitHabit() {
         <!-- 資料備份 -->
         <div class="bg-white rounded-[18px] px-5 py-[18px] shadow-[0_2px_10px_rgba(160,130,90,.08)]">
           <div class="text-[15px] font-bold mb-1">資料備份</div>
-          <div class="text-xs text-sand-500 leading-[1.7] mb-3">
-            所有資料只儲存在這台裝置的瀏覽器裡。建議定期匯出備份，換裝置或清瀏覽器資料前務必先匯出！
+          <div class="text-xs text-sand-500 leading-[1.7] mb-2">
+            所有資料只儲存在這台裝置的瀏覽器裡。建議定期匯出備份，換裝置或清瀏覽器資料前務必先匯出！{{ backupTip() }}
+          </div>
+          <div
+            class="text-xs font-bold mb-3"
+            :class="backupMeta.lastBackupAt ? 'text-leaf-deep' : 'text-primary-deep'"
+          >
+            {{ lastBackupLabel }}
           </div>
           <div class="flex gap-2 flex-wrap">
             <button
