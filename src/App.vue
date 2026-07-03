@@ -27,10 +27,12 @@ import ModalHost from './components/ModalHost.vue'
         </button>
       </div>
 
-      <TodayView v-if="ui.tab === 'today'" />
-      <RecordsView v-else-if="ui.tab === 'records'" />
-      <QuestionsView v-else-if="ui.tab === 'questions'" />
-      <MeView v-else-if="ui.tab === 'me'" />
+      <Transition name="view" mode="out-in">
+        <TodayView v-if="ui.tab === 'today'" />
+        <RecordsView v-else-if="ui.tab === 'records'" />
+        <QuestionsView v-else-if="ui.tab === 'questions'" />
+        <MeView v-else-if="ui.tab === 'me'" />
+      </Transition>
     </main>
 
     <footer class="text-center p-5 text-[11.5px] text-sand-450">
@@ -38,12 +40,7 @@ import ModalHost from './components/ModalHost.vue'
     </footer>
 
     <!-- toast -->
-    <Transition
-      enter-active-class="transition duration-200"
-      enter-from-class="opacity-0 translate-y-2"
-      leave-active-class="transition duration-200"
-      leave-to-class="opacity-0 translate-y-2"
-    >
+    <Transition name="toast">
       <div
         v-if="ui.toast"
         class="fixed bottom-[26px] left-1/2 -translate-x-1/2 bg-ink text-white px-[22px] py-[11px] rounded-full text-[13.5px] font-bold shadow-[0_8px_24px_rgba(61,52,40,.3)] z-60 whitespace-nowrap"

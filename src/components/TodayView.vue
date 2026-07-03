@@ -217,7 +217,7 @@ const quote = quotes[Math.floor(Date.now() / 86400000) % quotes.length]
             cx="52" cy="52" r="44" fill="none" stroke="#f0641e" stroke-width="11" stroke-linecap="round"
             :stroke-dasharray="kpiDash" transform="rotate(-90 52 52)" style="transition: stroke-dasharray 0.4s"
           />
-          <text x="52" y="49" text-anchor="middle" font-family="Nunito" font-weight="900" font-size="24" fill="#3d3428">
+          <text :key="todayCount" class="count-pop" x="52" y="49" text-anchor="middle" font-family="Nunito" font-weight="900" font-size="24" fill="#3d3428">
             {{ todayCount }}
           </text>
           <text x="52" y="66" text-anchor="middle" font-family="Nunito" font-weight="700" font-size="11" fill="#b09a7d">
@@ -269,10 +269,10 @@ const quote = quotes[Math.floor(Date.now() / 86400000) % quotes.length]
             "
           >
             <div
-              class="w-[26px] h-[26px] rounded-full text-white flex items-center justify-center text-sm box-border"
+              class="w-[26px] h-[26px] rounded-full text-white flex items-center justify-center text-sm box-border transition-colors duration-200"
               :class="doneToday.includes(h.id) ? 'bg-leaf' : 'bg-transparent border-2 border-sand-400'"
             >
-              {{ doneToday.includes(h.id) ? '✓' : '' }}
+              <span v-if="doneToday.includes(h.id)" class="check-in">✓</span>
             </div>
             <div
               class="text-xs font-medium whitespace-nowrap"

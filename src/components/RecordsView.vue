@@ -44,14 +44,15 @@ const filteredApps = computed(() =>
       </button>
     </div>
 
-    <div class="flex flex-col gap-2.5">
+    <TransitionGroup name="list" tag="div" class="relative flex flex-col gap-2.5">
       <AppCard v-for="app in filteredApps" :key="app.id" :app="app" />
       <div
         v-if="filteredApps.length === 0"
+        key="empty"
         class="p-9 border-[1.5px] border-dashed border-sand-300 rounded-2xl text-center text-sand-500 text-sm"
       >
         這個分類還沒有紀錄。每一封投出去的履歷，都值得被記下來 ✨
       </div>
-    </div>
+    </TransitionGroup>
   </div>
 </template>

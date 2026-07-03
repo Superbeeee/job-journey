@@ -144,6 +144,7 @@ const ivSubtitle = computed(() => {
 </script>
 
 <template>
+  <Transition name="modal">
   <div
     v-if="ui.modal"
     @click="closeModal"
@@ -151,7 +152,7 @@ const ivSubtitle = computed(() => {
   >
     <div
       @click.stop
-      class="bg-white rounded-[22px] px-[26px] py-6 w-full max-w-[440px] shadow-[0_20px_60px_rgba(61,52,40,.3)] max-h-[85vh] overflow-auto"
+      class="modal-panel bg-white rounded-[22px] px-[26px] py-6 w-full max-w-[440px] shadow-[0_20px_60px_rgba(61,52,40,.3)] max-h-[85vh] overflow-auto"
     >
       <!-- 新增／編輯應徵紀錄 -->
       <template v-if="ui.modal === 'appForm'">
@@ -231,7 +232,7 @@ const ivSubtitle = computed(() => {
                 v-for="n in 5"
                 :key="n"
                 @click="f.rvRating = n"
-                class="cursor-pointer bg-transparent border-none text-[27px] px-0.5"
+                class="cursor-pointer bg-transparent border-none text-[27px] px-0.5 hover:scale-120"
                 :style="{ color: n <= f.rvRating ? '#e8a33d' : '#e8dfd0' }"
               >
                 ★
@@ -345,4 +346,5 @@ const ivSubtitle = computed(() => {
       </template>
     </div>
   </div>
+  </Transition>
 </template>

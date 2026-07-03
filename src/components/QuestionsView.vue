@@ -63,7 +63,7 @@ function askRemove(q) {
       </button>
     </div>
 
-    <div class="flex flex-col gap-[9px]">
+    <TransitionGroup name="list" tag="div" class="relative flex flex-col gap-[9px]">
       <div
         v-for="q in questionsView"
         :key="q.id"
@@ -99,10 +99,11 @@ function askRemove(q) {
       </div>
       <div
         v-if="data.questions.length === 0"
+        key="empty"
         class="p-9 border-[1.5px] border-dashed border-sand-300 rounded-2xl text-center text-sand-500 text-sm"
       >
         還沒有收錄題目。面試完趁記憶猶新，把被問到的都記下來吧！
       </div>
-    </div>
+    </TransitionGroup>
   </div>
 </template>

@@ -15,6 +15,7 @@ import {
   exportIcs,
   icsEventFor,
 } from '../store'
+import { expandEnter, expandLeave } from '../transitions'
 
 const props = defineProps({ app: { type: Object, required: true } })
 
@@ -70,7 +71,7 @@ function toggleCondMet(condId) {
 
 <template>
   <div
-    class="bg-white rounded-2xl shadow-[0_2px_10px_rgba(160,130,90,.08)] overflow-hidden border-[1.5px]"
+    class="bg-white rounded-2xl shadow-[0_2px_10px_rgba(160,130,90,.08)] overflow-hidden border-[1.5px] transition-[box-shadow,border-color] duration-300 hover:shadow-[0_4px_16px_rgba(160,130,90,.15)]"
     :class="selected ? 'border-[#f0d9c2]' : 'border-transparent'"
   >
     <button
@@ -98,9 +99,10 @@ function toggleCondMet(condId) {
       >
         {{ STATUS_META[app.status].label }}
       </div>
-      <div class="text-sand-400 text-[13px]">{{ selected ? '▲' : '▼' }}</div>
+      <div class="text-sand-400 text-[13px] transition-transform duration-300" :class="{ 'rotate-180': selected }">▼</div>
     </button>
 
+    <Transition :css="false" @enter="expandEnter" @leave="expandLeave">
     <div v-if="selected" class="border-t-[1.5px] border-sand-100 px-[18px] py-4 flex flex-col gap-3.5 bg-[#fefcf8]">
       <!-- 狀態列 -->
       <div class="flex items-center gap-2.5 flex-wrap">
@@ -263,5 +265,6 @@ function toggleCondMet(condId) {
         </div>
       </div>
     </div>
+    </Transition>
   </div>
 </template>
