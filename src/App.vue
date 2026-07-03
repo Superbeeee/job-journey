@@ -1,11 +1,15 @@
 <script setup>
-import { ui, data, clearSample } from './store'
+import { ref } from 'vue'
+import { ui, data, clearSample, isInAppBrowser, platform } from './store'
 import AppHeader from './components/AppHeader.vue'
 import TodayView from './components/TodayView.vue'
 import RecordsView from './components/RecordsView.vue'
 import QuestionsView from './components/QuestionsView.vue'
 import MeView from './components/MeView.vue'
 import ModalHost from './components/ModalHost.vue'
+
+const inAppDismissed = ref(false)
+const browserName = platform === 'ios' ? 'Safari' : 'Chrome'
 </script>
 
 <template>
@@ -13,6 +17,25 @@ import ModalHost from './components/ModalHost.vue'
     <AppHeader />
 
     <main class="w-full max-w-[1080px] mx-auto px-4 py-5 sm:px-6 sm:py-6 box-border flex-1">
+      <!-- App 內建瀏覽器警告 -->
+      <div
+        v-if="isInAppBrowser && !inAppDismissed"
+        class="flex items-start gap-3 bg-[#fdf1ec] border-[1.5px] border-[#f5d5c4] rounded-[14px] px-4 py-3 mb-[18px] text-[13px] text-[#a04226] leading-[1.6]"
+      >
+        <span class="text-base">⚠️</span>
+        <span class="flex-1">
+          你正在 App 內建的瀏覽器中開啟，<b>紀錄的資料隨時可能被清掉</b>。建議點右上角「⋯」選單，改用
+          {{ browserName }} 開啟並加入主畫面，資料才留得住。
+        </span>
+        <button
+          @click="inAppDismissed = true"
+          class="cursor-pointer bg-transparent border-none text-[#c9977f] text-[15px] leading-none"
+          title="我知道了"
+        >
+          ✕
+        </button>
+      </div>
+
       <!-- 範例資料提示 -->
       <div
         v-if="data.sample"

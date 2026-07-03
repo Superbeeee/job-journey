@@ -568,6 +568,14 @@ export const platform = /iPhone|iPad|iPod/i.test(navigator.userAgent)
     ? 'android'
     : 'desktop'
 
+// App 內建瀏覽器（Threads/IG/FB/LINE/Messenger）：localStorage 隨時可能被清，提醒改用真正的瀏覽器
+export const isInAppBrowser = /Barcelona|Instagram|FBAN|FBAV|FB_IAB|Line\/|MicroMessenger|Twitter/i.test(
+  navigator.userAgent
+)
+
+// 向瀏覽器要求持久儲存，降低 localStorage 被自動清除的機率（iOS 7 天政策等）
+navigator.storage?.persist?.().catch(() => {})
+
 export function backupTip() {
   if (platform === 'ios') return '建議存到「檔案」的 iCloud Drive，或用 LINE 傳給自己 📁'
   if (platform === 'android') return '建議存到 Google Drive，或用 LINE 傳給自己 📁'
