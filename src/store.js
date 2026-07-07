@@ -333,9 +333,11 @@ export const ui = reactive({
   importMode: 'merge',
 })
 
-// 「今天」的 key 做成 reactive：跨日或切回分頁時自動更新
+// 「今天」的 key 與「現在」時刻做成 reactive：跨日、時間流逝、切回分頁時自動更新
 export const todayKey = ref(todayStr())
+export const nowTick = ref(Date.now())
 function refreshToday() {
+  nowTick.value = Date.now()
   const t = todayStr()
   if (todayKey.value !== t) todayKey.value = t
 }
@@ -370,23 +372,29 @@ export function findApp(id) {
   return data.applications.find((a) => a.id === id)
 }
 
-export function addApplication({ company, role, source }) {
+export function addApplication({ company, role, source, createdAt }) {
   const id = uid()
   const today = todayKey.value
+  const date = createdAt || today
   data.applications.unshift({
     id,
     company,
     role,
     source,
-    createdAt: today,
+    createdAt: date,
     status: 'applied',
-    statusHistory: [{ status: 'applied', at: today }],
+    statusHistory: [{ status: 'applied', at: date }],
     interviews: [],
     offer: {},
   })
-  data.applyLog[today] = (data.applyLog[today] || 0) + 1
+  // 補登過去的投遞不計入今天的 KPI
+  if (date === today) {
+    data.applyLog[today] = (data.applyLog[today] || 0) + 1
+    showToast('已記錄！今日投遞 +1 🧡')
+  } else {
+    showToast('已記錄 ✓')
+  }
   ui.selectedAppId = id
-  showToast('已記錄！今日投遞 +1 🧡')
 }
 
 export function updateApplication(id, fields) {
@@ -627,7 +635,7 @@ export function importData(incoming, mode) {
     data.applications = mergeArr(data.applications, clean.applications)
     data.questions = mergeArr(data.questions, clean.questions)
     data.conditions = mergeArr(data.conditions, clean.conditions)
-    data.habits = mergeArr(data.habits, clean.habits)
+    data.habits = mergeArr(data.habits, clean.habits).slice(0, 6)
     Object.entries(clean.applyLog).forEach(([k, v]) => {
       data.applyLog[k] = Math.max(data.applyLog[k] || 0, v)
     })

@@ -4,6 +4,7 @@ import {
   data,
   ui,
   todayKey,
+  nowTick,
   dayDiff,
   roundLabel,
   toggleHabit,
@@ -18,12 +19,12 @@ import {
   REVIEW_REMIND_DAYS,
 } from '../store'
 
-const now = new Date()
 const greeting = computed(() => {
-  const h = now.getHours()
+  const h = new Date(nowTick.value).getHours()
   return (h < 11 ? '早安' : h < 18 ? '午安' : '晚安') + '！今天也一步一步來 ☀'
 })
 const dateLabel = computed(() => {
+  const now = new Date(nowTick.value)
   const weekdays = ['日', '一', '二', '三', '四', '五', '六']
   return `${now.getMonth() + 1} 月 ${now.getDate()} 日（${weekdays[now.getDay()]}）· 加油`
 })
@@ -57,27 +58,29 @@ const kpiMessage = computed(() => {
 const doneToday = computed(() => data.habitLog[todayKey.value] || [])
 const habitsDone = computed(() => doneToday.value.filter((id) => data.habits.some((h) => h.id === id)).length)
 
-// ----- 面試：即將到來／待檢討 -----
+// ----- 面試：即將到來／待檢討（比對到時分，面試一結束就轉入待檢討） -----
 const allInterviews = computed(() => {
   const list = []
   data.applications.forEach((app) =>
     app.interviews.forEach((iv) => {
-      if (iv.date) list.push({ app, iv, diff: dayDiff(iv.date) })
+      if (!iv.date) return
+      const ts = new Date(iv.date + 'T' + (iv.time || '23:59')).getTime()
+      list.push({ app, iv, diff: dayDiff(iv.date), ts })
     })
   )
   return list
 })
 const upcoming = computed(() =>
   allInterviews.value
-    .filter(({ iv, diff }) => diff >= 0 && !iv.review)
-    .sort((a, b) => (a.iv.date + a.iv.time).localeCompare(b.iv.date + b.iv.time))
+    .filter(({ iv, ts }) => ts >= nowTick.value && !iv.review)
+    .sort((a, b) => a.ts - b.ts)
     .slice(0, 5)
 )
-// 面試日期已過、還沒寫檢討的（保留 14 天）
+// 面試時間已過、還沒寫檢討的（保留 14 天）
 const pendingReviews = computed(() =>
   allInterviews.value
-    .filter(({ iv, diff }) => diff < 0 && diff >= -REVIEW_REMIND_DAYS && !iv.review)
-    .sort((a, b) => (b.iv.date + b.iv.time).localeCompare(a.iv.date + a.iv.time))
+    .filter(({ iv, ts, diff }) => ts < nowTick.value && diff >= -REVIEW_REMIND_DAYS && !iv.review)
+    .sort((a, b) => b.ts - a.ts)
 )
 // 備份提醒：從沒備份過且已有一定資料量，或距上次備份超過 7 天且期間有變動
 const BACKUP_REMIND_DAYS = 7

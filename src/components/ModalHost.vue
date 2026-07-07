@@ -1,8 +1,9 @@
 <script setup>
-import { reactive, ref, watch, computed } from 'vue'
+import { reactive, ref, watch, computed, onMounted, onUnmounted } from 'vue'
 import {
   ui,
   closeModal,
+  todayStr,
   findApp,
   roundLabel,
   addApplication,
@@ -32,7 +33,7 @@ const backupSteps = {
 }
 
 const f = reactive({
-  company: '', role: '', source: '',
+  company: '', role: '', source: '', appDate: '',
   ivDate: '', ivTime: '', ivLoc: '', ivNote: '',
   rvRating: 0, rvGood: '', rvImprove: '',
   qAnswer: '',
@@ -54,6 +55,7 @@ watch(
       f.company = a?.company || ''
       f.role = a?.role || ''
       f.source = a?.source || ''
+      f.appDate = a?.createdAt || todayStr()
     } else if (m === 'ivForm') {
       const iv = ctxIv.value
       f.ivDate = iv?.date || ''
@@ -76,11 +78,23 @@ function submitAppForm() {
     formError.value = '公司名稱和職稱是必填的唷'
     return
   }
-  const fields = { company: f.company.trim(), role: f.role.trim(), source: f.source.trim() }
+  const fields = {
+    company: f.company.trim(),
+    role: f.role.trim(),
+    source: f.source.trim(),
+    createdAt: f.appDate || todayStr(),
+  }
   if (isEdit.value) updateApplication(ui.modalCtx.appId, fields)
   else addApplication(fields)
   closeModal()
 }
+
+// Esc 關閉 modal
+function onKeydown(e) {
+  if (e.key === 'Escape' && ui.modal) closeModal()
+}
+onMounted(() => window.addEventListener('keydown', onKeydown))
+onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
 function submitIvForm() {
   if (!f.ivDate || !f.ivTime) {
@@ -172,6 +186,10 @@ const ivSubtitle = computed(() => {
           <label class="flex flex-col gap-[5px] text-xs text-sand-700 font-bold">
             來源管道
             <input v-model="f.source" placeholder="例：104 / LinkedIn / 內推" class="px-[13px] py-2.5 border-[1.5px] border-sand-200 rounded-[11px] text-sm" />
+          </label>
+          <label class="flex flex-col gap-[5px] text-xs text-sand-700 font-bold">
+            投遞日期
+            <input type="date" v-model="f.appDate" class="px-[13px] py-2.5 border-[1.5px] border-sand-200 rounded-[11px] text-sm" />
           </label>
           <div v-if="formError" class="text-[12.5px] text-[#c0392b]">{{ formError }}</div>
           <div class="flex gap-[9px] mt-1">
