@@ -209,7 +209,7 @@ function sampleData() {
       { id: 'q3', text: '你為什麼想離開上一份工作？', company: 'CloudMile', answer: '往正向動機講：想要的成長，而不是抱怨前公司。', date: today },
     ],
     conditions: [
-      { id: 'c1', text: '月薪 60K 以上', must: true },
+      { id: 'c1', text: '月薪 88K 以上', must: true },
       { id: 'c2', text: '可遠端 2 天/週', must: true },
       { id: 'c3', text: '有 code review 文化', must: true },
       { id: 'c4', text: '通勤 40 分內', must: false },
@@ -228,6 +228,17 @@ function normalize(raw) {
   data.kpiTarget = Math.max(1, parseInt(data.kpiTarget) || 20)
   if (typeof data.habitLog !== 'object' || data.habitLog === null || Array.isArray(data.habitLog)) data.habitLog = {}
   if (typeof data.applyLog !== 'object' || data.applyLog === null || Array.isArray(data.applyLog)) data.applyLog = {}
+  // applyLog 的值一律轉成非負整數，habitLog 的值一律轉成字串陣列，擋掉手動改壞的備份
+  data.applyLog = Object.fromEntries(
+    Object.entries(data.applyLog)
+      .map(([k, v]) => [k, Math.max(0, parseInt(v) || 0)])
+      .filter(([, v]) => v > 0)
+  )
+  data.habitLog = Object.fromEntries(
+    Object.entries(data.habitLog)
+      .map(([k, v]) => [k, Array.isArray(v) ? v.filter((x) => typeof x === 'string') : []])
+      .filter(([, v]) => v.length > 0)
+  )
 
   const arr = (v) => (Array.isArray(v) ? v : [])
   data.habits = arr(data.habits)
@@ -532,11 +543,14 @@ export function clearSample() {
 export function exportIcs(events) {
   const esc = (s) => String(s || '').replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n')
   const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//JobJourney//TW']
+  // RFC 5545 規定 VEVENT 必須有 DTSTAMP（UTC）
+  const dtstamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '')
   events.forEach((ev) => {
     const dt = ev.date.replace(/-/g, '') + 'T' + (ev.time || '09:00').replace(':', '') + '00'
     lines.push(
       'BEGIN:VEVENT',
       'UID:' + uid() + '@jobjourney',
+      'DTSTAMP:' + dtstamp,
       'DTSTART:' + dt,
       'DURATION:PT1H',
       'SUMMARY:' + esc(ev.title),
@@ -566,7 +580,8 @@ function download(blob, filename) {
   a.href = URL.createObjectURL(blob)
   a.download = filename
   a.click()
-  URL.revokeObjectURL(a.href)
+  // 延遲撤銷：立刻 revoke 在部分瀏覽器會讓下載抓到空檔
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000)
 }
 
 // ---------- 平台偵測與備份建議 ----------

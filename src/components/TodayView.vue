@@ -70,12 +70,14 @@ const allInterviews = computed(() => {
   )
   return list
 })
-const upcoming = computed(() =>
+// 未來的面試（未切筆數，「全部匯出」用這份）
+const futureInterviews = computed(() =>
   allInterviews.value
     .filter(({ iv, ts }) => ts >= nowTick.value && !iv.review)
     .sort((a, b) => a.ts - b.ts)
-    .slice(0, 5)
 )
+// 今日頁清單只顯示前 5 筆
+const upcoming = computed(() => futureInterviews.value.slice(0, 5))
 // 面試時間已過、還沒寫檢討的（保留 14 天）
 const pendingReviews = computed(() =>
   allInterviews.value
@@ -105,11 +107,11 @@ const offerDeadlines = computed(() =>
 )
 
 function exportAllIcs() {
-  if (upcoming.value.length === 0) {
+  if (futureInterviews.value.length === 0) {
     showToast('目前沒有排定的面試')
     return
   }
-  exportIcs(upcoming.value.map(({ app, iv }) => icsEventFor(app, iv)))
+  exportIcs(futureInterviews.value.map(({ app, iv }) => icsEventFor(app, iv)))
 }
 
 function badgeFor(diff) {

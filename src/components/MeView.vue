@@ -70,7 +70,7 @@ const lastBackupLabel = computed(() => {
           <input
             v-model="condText"
             @keyup.enter="submitCondition"
-            placeholder="例：月薪 60K 以上"
+            placeholder="例：月薪 88K 以上"
             class="flex-1 min-w-0 px-[13px] py-[9px] border-[1.5px] border-sand-200 rounded-[11px] text-[13px]"
           />
           <button
